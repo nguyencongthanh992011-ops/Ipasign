@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ký IPA Trực Tuyến Cho iPhone & iPad - Ký Chứng Chỉ iOS Nhanh Chóng</title>
+  <meta name="description" content="Công cụ web ký file IPA trực tiếp trên iPhone không cần máy tính. Tự động trích xuất chứng chỉ ZIP (.p12, .mobileprovision), ký an toàn bằng WebAssembly và cài đặt OTA qua itms-services." />
+  <meta name="keywords" content="ky ipa, sign ipa online, ios sign, sideload iphone, mobileprovision, p12, itms-services" />
+  <meta name="theme-color" content="#0a0d14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <!-- Ambient background glow spheres -->
+  <div class="ambient-glow" aria-hidden="true">
+    <div class="glow-circle-1"></div>
+    <div class="glow-circle-2"></div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-badge">
+        <span class="pulse-dot"></span>
+        <span>iOS Sideload Engine • WebAssembly zsign</span>
+      </div>
+      <h1 class="app-title">Ký IPA Trực Tuyến</h1>
+      <p class="app-subtitle">Ký ứng dụng iOS trực tiếp trên trình duyệt, không lộ chứng chỉ, cài đặt ngay lên iPhone qua giao thức OTA hoặc tải file IPA thô.</p>
+    </header>
+
+    <main id="main-content">
+      <!-- Section 1: Chứng chỉ iOS -->
+      <section class="glass-card" id="section-cert">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="step-number">1</span>
+            <div>
+              <h2 class="card-title">Chứng Chỉ Nhà Phát Triển iOS</h2>
+              <span class="card-hint">Hỗ trợ file ZIP đóng gói sẵn hoặc tải riêng 2 file</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="tab-container" role="tablist">
+          <button type="button" class="tab-button active" id="tab-btn-zip" role="tab" aria-selected="true" aria-controls="panel-zip">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+            Tải file ZIP chứng chỉ (Khuyên dùng)
+          </button>
+          <button type="button" class="tab-button" id="tab-btn-manual" role="tab" aria-selected="false" aria-controls="panel-manual">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            Nhập thủ công 2 file
+          </button>
+        </div>
+
+        <!-- Panel 1: Upload ZIP -->
+        <div id="panel-zip" class="tab-panel">
+          <div class="dropzone" id="dropzone-zip" tabindex="0" role="button" aria-label="Tải lên tệp ZIP chứng chỉ">
+            <input type="file" id="file-input-zip" accept=".zip" />
+            <div class="dropzone-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <p class="dropzone-title">Kéo thả file ZIP chứng chỉ vào đây</p>
+            <p class="dropzone-desc">Hệ thống sẽ tự động bóc tách file .p12 và .mobileprovision</p>
+          </div>
+        </div>
+
+        <!-- Panel 2: Manual 2 files -->
+        <div id="panel-manual" class="tab-panel hidden">
+          <div class="dual-drop-grid">
+            <div class="dropzone" id="dropzone-p12" tabindex="0" role="button" aria-label="Tải lên tệp chứng chỉ P12">
+              <input type="file" id="file-input-p12" accept=".p12,.pfx" />
+              <div class="dropzone-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <p class="dropzone-title">Chọn file Chứng chỉ (.p12)</p>
+              <p class="dropzone-desc">Chứng chỉ cá nhân hoặc doanh nghiệp</p>
+            </div>
+
+            <div class="dropzone" id="dropzone-prov" tabindex="0" role="button" aria-label="Tải lên tệp MobileProvision">
+              <input type="file" id="file-input-prov" accept=".mobileprovision,.provisionprofile" />
+              <div class="dropzone-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <p class="dropzone-title">Chọn file Profile (.mobileprovision)</p>
+              <p class="dropzone-desc">Hồ sơ cấp quyền thiết bị</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extracted Certificate Info Card -->
+        <div id="cert-details-card" class="file-badge-card hidden">
+          <div class="file-badge-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="file-badge-details">
+            <div class="file-badge-name" id="cert-display-name">Chứng chỉ iOS hợp lệ</div>
+            <div class="file-badge-meta" id="cert-meta-tags">
+              <!-- Tags rendered via JS -->
+            </div>
+          </div>
+          <button type="button" id="btn-remove-cert" class="toggle-pwd-btn" title="Hủy chứng chỉ">✕</button>
+        </div>
+
+        <!-- P12 Password Input Field -->
+        <div class="password-box" id="password-section">
+          <div class="password-label">
+            <span>Mật khẩu chứng chỉ P12 (Nếu có):</span>
+            <span id="password-status" class="password-status">Chưa nhập</span>
+          </div>
+          <div class="input-with-button">
+            <input type="password" id="input-p12-password" class="glass-input" placeholder="Nhập mật khẩu file .p12 (để trống nếu không có)" autocomplete="off" />
+            <button type="button" id="btn-toggle-password" class="toggle-pwd-btn" title="Ẩn/Hiện mật khẩu" aria-label="Ẩn/Hiện mật khẩu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Chọn file IPA -->
+      <section class="glass-card" id="section-ipa">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="step-number">2</span>
+            <div>
+              <h2 class="card-title">Tải Lên File Ứng Dụng (.IPA)</h2>
+              <span class="card-hint">File IPA gốc cần ký lại bản quyền</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- IPA Dropzone -->
+        <div class="dropzone" id="dropzone-ipa" tabindex="0" role="button" aria-label="Tải lên tệp IPA">
+          <input type="file" id="file-input-ipa" accept=".ipa" />
+          <div class="dropzone-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+          </div>
+          <p class="dropzone-title">Kéo thả file .IPA vào đây hoặc nhấn để chọn</p>
+          <p class="dropzone-desc">Tự động đọc thông tin: Tên ứng dụng, Icon, Bundle ID, Phiên bản</p>
+        </div>
+
+        <!-- IPA Parsed Preview -->
+        <div id="ipa-preview-card" class="ipa-preview hidden">
+          <img id="app-preview-icon" class="app-icon-squircle" src="" alt="App Icon" />
+          <div class="app-info-col">
+            <h3 class="app-display-name" id="app-preview-name">Ứng dụng</h3>
+            <div class="app-meta-row">
+              <span id="app-preview-bundle">com.example.app</span>
+              <span>•</span>
+              <span id="app-preview-version">v1.0.0</span>
+              <span>•</span>
+              <span id="app-preview-size">0 MB</span>
+            </div>
+
+            <!-- Advanced options toggle -->
+            <button type="button" id="btn-toggle-advanced" class="advanced-toggle">
+              <span>Tùy chỉnh nâng cao (Tên & Bundle ID)</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+          <button type="button" id="btn-remove-ipa" class="toggle-pwd-btn" title="Hủy file IPA">✕</button>
+        </div>
+
+        <!-- Advanced Fields Container -->
+        <div id="advanced-fields-box" class="advanced-fields hidden">
+          <div class="field-group">
+            <label for="input-custom-name" class="field-label">Tên hiển thị mới (Tùy chọn):</label>
+            <input type="text" id="input-custom-name" class="glass-input" placeholder="Để trống để giữ nguyên tên gốc" />
+          </div>
+          <div class="field-group">
+            <label for="input-custom-bundle" class="field-label">Bundle ID mới (Tùy chọn):</label>
+            <input type="text" id="input-custom-bundle" class="glass-input" placeholder="Để trống để giữ nguyên Bundle ID" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Nút Ký IPA -->
+      <section class="action-card">
+        <button type="button" id="btn-sign-ipa" class="sign-btn" disabled>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          <span>KÝ IPA NGAY</span>
+        </button>
+        <p class="btn-hint" id="sign-btn-hint">Vui lòng nạp đủ Chứng chỉ (.p12, .mobileprovision) và file .IPA để bắt đầu</p>
+      </section>
+
+      <!-- Section 4: Kết Quả Ký & Cài Đặt (Result View) -->
+      <section id="section-result" class="glass-card result-card hidden">
+        <div class="success-badge-header">
+          <div class="success-icon-ring">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2 class="success-title">Ký Ứng Dụng Thành Công!</h2>
+          <p class="success-subtitle" id="result-app-summary">File IPA đã được đóng gói và ký số chứng thực thành công.</p>
+        </div>
+
+        <!-- Result Action Buttons -->
+        <div class="install-actions">
+          <!-- Direct Install OTA -->
+          <button type="button" id="btn-ota-install" class="btn-ota-install">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 0.6-2.65 1.35-.58.66-1.09 1.73-.95 2.76 1.01.08 2.06-.51 2.68-1.26z"/></svg>
+            <span>Cài Đặt Trực Tiếp Lên iPhone (OTA)</span>
+          </button>
+
+          <!-- Raw Signed IPA Download -->
+          <button type="button" id="btn-download-raw" class="btn-download-raw">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Tải File IPA Thô Đã Ký</span>
+          </button>
+        </div>
+
+        <!-- Custom Direct URL Input (Fallback / Custom hosting) -->
+        <div class="password-box" style="margin-top: 20px;">
+          <div class="password-label">
+            <span>Hoặc dùng liên kết tải IPA riêng (Tùy chọn):</span>
+            <span class="password-status" style="color: var(--text-muted)">Catbox, Dropbox, GDrive direct...</span>
+          </div>
+          <div class="input-with-button">
+            <input type="url" id="input-custom-ipa-url" class="glass-input" placeholder="https://domain.com/my-signed-app.ipa" />
+            <button type="button" id="btn-apply-custom-url" class="btn-download-raw" style="width: auto; padding: 0 18px; margin: 0;">
+              Áp Dụng
+            </button>
+          </div>
+        </div>
+
+        <!-- QR Code for iPhone Camera Scanning -->
+        <div class="qr-card" id="qr-container">
+          <img id="ota-qr-code" class="qr-code-img" src="" alt="Mã QR Cài Đặt" />
+          <div class="qr-text-col">
+            <h4>Quét Mã Bằng Camera iPhone</h4>
+            <p>Nếu bạn đang thao tác trên máy tính, hãy mở ứng dụng Camera trên iPhone và quét mã QR này để cài đặt trực tiếp không cần cắm cáp.</p>
+          </div>
+        </div>
+
+        <!-- iOS Certificate Trust Alert & Guide -->
+        <div class="ios-trust-alert">
+          <div class="ios-trust-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Hướng Dẫn Sau Khi Cài Đặt Trên iPhone</span>
+          </div>
+          <ol class="ios-trust-steps">
+            <li>Khi bấm "Cài đặt trực tiếp", Safari sẽ hỏi <strong>"Mở trang này trong iTunes?"</strong> -> Bấm <strong>Mở</strong> -> Bấm <strong>Cài đặt</strong>.</li>
+            <li>Ứng dụng sẽ xuất hiện và tải về màn hình chính của iPhone.</li>
+            <li>Sau khi tải xong, vào <strong>Cài đặt (Settings)</strong> -> <strong>Cài đặt chung (General)</strong> -> <strong>Quản lý VPN & Thiết bị (VPN & Device Management)</strong>.</li>
+            <li>Chọn tên chứng chỉ của bạn và nhấn <strong>Tin cậy (Trust)</strong> để mở ứng dụng.</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <!-- Signing Progress Modal -->
+    <div id="signing-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-content">
+        <div class="signing-spinner-box">
+          <svg class="circular-spinner" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#06b6d4" />
+                <stop offset="50%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="42" />
+          </svg>
+          <div class="spinner-percent" id="modal-percent">0%</div>
+        </div>
+
+        <h3 class="modal-title" id="modal-title">Đang Ký Ứng Dụng...</h3>
+        <p class="modal-status-text" id="modal-status-text">Đang phân tích cấu trúc IPA & chứng chỉ</p>
+
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="modal-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Hệ thống ký IPA bảo mật chạy hoàn toàn trên trình duyệt bằng WebAssembly.</p>
+      <p style="margin-top: 6px;">Deploy dễ dàng trên <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a> • Mã nguồn mở trên <a href="https://github.com/okphong582-png/Ipa" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
